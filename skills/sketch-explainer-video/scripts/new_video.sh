@@ -1,14 +1,14 @@
 #!/bin/zsh
 # 新建一条简笔画口播视频工程：配音 → 本地识别 → 逐字对齐 → 引擎就位
 # 用法：
-#   new_video.sh <工程目录> <口播文案.txt> [--speaker 音色ID] [--model speech-2.8-turbo|speech-2.8-hd] [--title 标题] [--audio 已有配音.mp3] [--tts-json 已有结果.json] [--font 手写字体]
-# 不给 --audio / --tts-json 时，用使用者自己的 MiniMax Key 合成（见 bind_tts.sh）
+#   new_video.sh <工程目录> <口播文案.txt> [--speaker 音色ID] [--title 标题] [--audio 已有配音.mp3] [--tts-json 已有结果.json] [--font 手写字体]
+# 不给 --audio / --tts-json 时，用使用者自己的 ListenHub API Key 合成（见 bind_tts.sh）
 set -e
 SKILL=${0:A:h:h}
 DIR=$1; SCRIPT=$2; shift 2
-SPEAKER='Chinese (Mandarin)_Gentle_Senior'; MODEL=speech-2.8-turbo; TITLE=""; TTSJSON=""; AUDIO=""; FONT=""
+SPEAKER=chat-girl-105-cn; TITLE=""; TTSJSON=""; AUDIO=""; FONT=""
 while [[ $# -gt 0 ]]; do case $1 in
-  --speaker) SPEAKER=$2; shift 2;; --model) MODEL=$2; shift 2;; --title) TITLE=$2; shift 2;;
+  --speaker) SPEAKER=$2; shift 2;; --title) TITLE=$2; shift 2;;
   --tts-json) TTSJSON=${2:A}; shift 2;; --audio) AUDIO=${2:A}; shift 2;; --font) FONT=$2; shift 2;;
   *) echo "未知参数 $1"; exit 1;; esac; done
 [[ -f $SCRIPT ]] || { echo "找不到文案 $SCRIPT"; exit 1; }
@@ -16,12 +16,20 @@ SCRIPT=${SCRIPT:A}
 [[ -e $DIR/index.html ]] && { echo "$DIR 已存在工程，换个目录"; exit 1; }
 for b in ffmpeg ffprobe coli npx python3; do command -v $b >/dev/null || { echo "缺少命令 $b"; exit 1; }; done
 if [[ -z $AUDIO && -z $TTSJSON ]]; then
-  python3 -c '
-import runpy, sys
-m = runpy.run_path(sys.argv[1])
-if not m["load_key"]():
-    print(m["GUIDE"]); sys.exit(2)
-' "$SKILL/scripts/tts_minimax.py"
+  command -v listenhub >/dev/null || { echo "缺少 listenhub CLI"; exit 1; }
+  if [[ -z ${LISTENHUB_API_KEY:-} ]]; then
+    KEYFILE="$HOME/.config/sketch-explainer-video/listenhub.key"
+    [[ -f $KEYFILE ]] && LISTENHUB_API_KEY="$(<"$KEYFILE")"
+  fi
+  if [[ -z ${LISTENHUB_API_KEY:-} ]]; then
+    echo "还没有绑定 ListenHub API Key，这次没有调用配音。"
+    echo "请使用者自己申请并绑定（不要把 Key 贴进对话，也不要改用 listenhub auth login）："
+    echo "1. 打开 https://listenhub.ai/settings/api-keys 创建 API Key。"
+    echo "2. 在自己的电脑执行：bash $SKILL/scripts/bind_tts.sh"
+    echo "默认音色是晓曼 chat-girl-105-cn。已有 mp3 时加 --audio。说明见 references/tts.md。"
+    exit 2
+  fi
+  export LISTENHUB_API_KEY
 fi
 VENV=~/.cache/sketch-explainer-video/venv
 [[ -x $VENV/bin/python ]] || { python3 -m venv $VENV && $VENV/bin/pip -q install fonttools brotli pillow; }
@@ -36,8 +44,8 @@ printf '{\n  "$schema": "https://hyperframes.heygen.com/schema/hyperframes.json"
 if [[ -n $AUDIO ]]; then cp $AUDIO assets/audio/narration.mp3
 else
   if [[ -z $TTSJSON ]]; then
-    echo "→ MiniMax 合成配音（$MODEL / $SPEAKER）…"
-    python3 $SKILL/scripts/tts_minimax.py --text-file user_script.txt --speaker "$SPEAKER" --model "$MODEL" --out assets/audio/narration.mp3
+    echo "→ ListenHub 合成配音（音色 $SPEAKER，使用已绑定的 API Key）…"
+    listenhub openapi tts --text "$(cat user_script.txt)" --voice "$SPEAKER" --output assets/audio/narration.mp3 --format mp3
   else
     cp $TTSJSON assets/audio/tts.json
     URL=$(python3 -c "import json;print(json.load(open('assets/audio/tts.json'))['topicDetail']['audio']['data']['audioUrl'])")

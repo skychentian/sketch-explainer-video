@@ -1,6 +1,6 @@
 ---
 name: sketch-explainer-video
-description: 把一段中文口播文案做成「简笔画手写风」竖屏解说视频（米白点阵纸、黑色手写字、黄色荧光笔、红色 ✓✗？、线条图标逐笔画出，MiniMax 按原文配音再逐字对齐，底部手写字幕，1080×1920 MP4）。只要用户说“简笔画视频/手绘风视频/白板动画/笔记风口播视频/把这段口播做成视频/按上次兔宝宝那种风格做视频/批量把脚本做成视频”，或给出口播稿+想要知识科普类竖屏短视频（抖音/视频号/小红书），都用这个 skill，即使没提“简笔画”三个字。配音必须用使用者自己的 MiniMax API Key。支持换音色与多条批量并行。不用于：剪辑真人拍摄素材、数字人口播、PPT。
+description: 把一段中文口播文案做成「简笔画手写风」竖屏解说视频（米白点阵纸、黑色手写字、黄色荧光笔、红色 ✓✗？、线条图标逐笔画出，ListenHub 按原文配音再逐字对齐，底部手写字幕，1080×1920 MP4）。只要用户说“简笔画视频/手绘风视频/白板动画/笔记风口播视频/把这段口播做成视频/按上次兔宝宝那种风格做视频/批量把脚本做成视频”，或给出口播稿+想要知识科普类竖屏短视频（抖音/视频号/小红书），都用这个 skill，即使没提“简笔画”三个字。配音必须用使用者自己的 ListenHub API Key。支持换音色（晓曼/高晴/苏哲等）与多条批量并行。不用于：剪辑真人拍摄素材、数字人口播、PPT。
 ---
 
 # 简笔画口播视频
@@ -10,7 +10,7 @@ description: 把一段中文口播文案做成「简笔画手写风」竖屏解�
 整个流程里**只有“设计画面”需要你动脑**，其余全部是脚本：配音、识别、逐字对齐、引擎、检查、渲染。照步骤走，别跳过检查。
 
 ## 前置条件（第一次用先确认）
-- 使用者自己的 MiniMax API Key 已绑定。没有 Key 时**先停**，把下面的申请步骤告诉对方，不要合成，也不要索要 Key 原文
+- `listenhub` CLI 已安装，并且使用者自己的 ListenHub API Key 已绑定。没有 Key 时**先停**，把下面的申请步骤告诉对方。不要合成，不要索要 Key 原文，也不要改用 `listenhub auth login`
 - `coli`（本地语音识别）、`ffmpeg`、`node/npx`、`python3`
 - macOS：自动使用系统自带「手札体」；其他系统给 `--font 某中文手写字体.ttf`
 - 首次运行会在 `~/.cache/sketch-explainer-video/venv` 装 fonttools
@@ -18,11 +18,11 @@ description: 把一段中文口播文案做成「简笔画手写风」竖屏解�
 
 ## 绑定配音
 
-默认模型是 MiniMax `speech-2.8-turbo`：中文解说自然度够用，官方价 2 元/万计费字符，1 个汉字算 2 个计费字符，大约 0.4 元/千汉字。一段约 600 字大约 0.24 元。要更好听就加 `--model speech-2.8-hd`（大约 0.7 元/千汉字）。为什么不默认别家，见 `references/tts.md`。
+配音仍是 ListenHub，音色仍是晓曼这一套。每个使用者自己申请 Key，再在本机绑定。官方定价页写 10 分钟文字转语音大约 40 积分；积分换成人民币的价格该页没有给出。和其他语音的单价对照见 `references/tts.md`。
 
 还没绑定时，请对方自己做这两步：
 
-1. 打开 https://platform.minimax.cn ，注册后到「账户管理 → 接口密钥」创建 Key。国际站账号用 https://platform.minimax.io ，并设置 `MINIMAX_API_HOST=https://api.minimax.io`。
+1. 打开 https://listenhub.ai/settings/api-keys ，创建 API Key。
 2. 在自己电脑执行（输入不显示，Key 只留在本机，不要贴进对话）：
 
 ```bash
@@ -42,7 +42,7 @@ bash <skill>/scripts/bind_tts.sh
 - 结束时看输出里的 `matched x/y`：≥95% 正常（没对上的多是同音字，不影响）；明显偏低说明配音和文案不是同一份。
 - 产物：`sentences.txt`（每句开始秒数）、`assets/timing.js`、`index.html`（引擎已就位，留有 `<!--SCENES-->`）。
 
-音色（`--speaker`）：温柔学姐 `Chinese (Mandarin)_Gentle_Senior`（默认）· 新闻女声 `Chinese (Mandarin)_News_Anchor` · 温润男声 `Chinese (Mandarin)_Gentleman`。完整列表：https://platform.minimax.cn/docs/faq/system-voice-id 。不要再传旧的 ListenHub 音色 ID。
+音色（`--speaker`）：晓曼 `chat-girl-105-cn`（女，专业亲切，默认）· 高晴 `gaoqing3-bfb5c88a`（女，明亮有活力）· 苏哲 `suzhe-45bbbe54`（男，沉稳讲解）。更多音色以 ListenHub 控制台为准。
 
 ### 2. 切分镜（写 STORYBOARD.md）
 读 `sentences.txt`，把全片切成 **8–13 个画面**，每个 6–16 秒：

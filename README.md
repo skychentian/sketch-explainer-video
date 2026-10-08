@@ -2,7 +2,7 @@
 
 把一段中文口播，做成米白点阵纸、黑色手写字、黄色荧光笔的竖屏解说视频（1080×1920）。字和图跟着配音一笔一笔出现。
 
-配音不走制作者的账号。每个使用者自己去 MiniMax 申请 API Key，再在本机绑定。
+配音仍用 ListenHub 的晓曼等音色，按原文朗读。每个使用者自己申请 API Key，再在本机绑定，不使用别人的登录账号。
 
 ## 安装
 
@@ -14,7 +14,7 @@ npx -y skills add skychentian/sketch-explainer-video -g --all
 
 ## 先绑定自己的配音 Key
 
-1. 打开 https://platform.minimax.cn ，注册后进入「账户管理 → 接口密钥」，创建一把 Key。
+1. 打开 https://listenhub.ai/settings/api-keys ，创建一把 API Key。
 2. 在自己的电脑上绑定。输入时不会显示，Key 只留在本机，不要贴进对话：
 
 ```bash
@@ -23,19 +23,9 @@ bash ~/.claude/skills/sketch-explainer-video/scripts/bind_tts.sh
 
 如果 skill 装在别的目录，用那个目录里的 `scripts/bind_tts.sh`。
 
-国际站账号（https://platform.minimax.io ）还要加一行：
+不要用 `listenhub auth login` 代替。登录态用的是当前这台电脑上的账号，公开技能不走这条路。
 
-```bash
-export MINIMAX_API_HOST=https://api.minimax.io
-```
-
-## 默认用哪一家
-
-默认模型是 MiniMax `speech-2.8-turbo`。
-
-官方价是 2 元 / 万计费字符，1 个汉字算 2 个计费字符，大约 0.4 元 / 千汉字。一段约 600 字的口播大约 0.24 元。想要更好听，对 Agent 说用 `speech-2.8-hd`，大约 0.42 元。
-
-Fish Audio 按字节算更便宜，豆包的字数包单价也更低，但一个要海外账号，一个要单独建应用。这个 skill 要的是「一把 Key 就能按原文朗读」。对照写在 `skills/sketch-explainer-video/references/tts.md`，价格核对日是 2026-10-08。
+默认音色是晓曼。官方定价页写的是 10 分钟文字转语音大约 40 积分，积分换成人民币的价格该页没有给出。和其他语音的单价对照在 `skills/sketch-explainer-video/references/tts.md`。
 
 已经有 mp3 时直接交给 Agent，不要重新合成。
 

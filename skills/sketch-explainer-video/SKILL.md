@@ -1,6 +1,6 @@
 ---
 name: sketch-explainer-video
-description: 把一段中文口播文案做成「简笔画手写风」竖屏解说视频（米白点阵纸、黑色手写字、黄色荧光笔、红色 ✓✗？、线条图标逐笔画出，ListenHub 按原文配音再逐字对齐，底部手写字幕，1080×1920 MP4）。只要用户说“简笔画视频/手绘风视频/白板动画/笔记风口播视频/把这段口播做成视频/按上次兔宝宝那种风格做视频/批量把脚本做成视频”，或给出口播稿+想要知识科普类竖屏短视频（抖音/视频号/小红书），都用这个 skill，即使没提“简笔画”三个字。配音必须用使用者自己的 ListenHub API Key。支持换音色（晓曼/高晴/苏哲等）与多条批量并行。不用于：剪辑真人拍摄素材、数字人口播、PPT。
+description: 把一段中文口播文案做成「简笔画手写风」竖屏解说视频（米白点阵纸、黑色手写字、黄色荧光笔、红色 ✓✗？、线条图标逐笔画出，MiniMax 或豆包按原文配音再逐字对齐，底部手写字幕，1080×1920 MP4）。只要用户说“简笔画视频/手绘风视频/白板动画/笔记风口播视频/把这段口播做成视频/按上次兔宝宝那种风格做视频/批量把脚本做成视频”，或给出口播稿+想要知识科普类竖屏短视频（抖音/视频号/小红书），都用这个 skill，即使没提“简笔画”三个字。配音必须用使用者自己的 MiniMax 或豆包 API Key。两家都没绑定就先停下来，引导对方绑定其中一家，不要索要 Key。支持换音色与多条批量并行。不用于：剪辑真人拍摄素材、数字人口播、PPT。
 ---
 
 # 简笔画口播视频
@@ -10,7 +10,7 @@ description: 把一段中文口播文案做成「简笔画手写风」竖屏解�
 整个流程里**只有“设计画面”需要你动脑**，其余全部是脚本：配音、识别、逐字对齐、引擎、检查、渲染。照步骤走，别跳过检查。
 
 ## 前置条件（第一次用先确认）
-- `listenhub` CLI 已安装，并且使用者自己的 ListenHub API Key 已绑定。没有 Key 时**先停**，把下面的申请步骤告诉对方。不要合成，不要索要 Key 原文，也不要改用 `listenhub auth login`
+- 使用者已经绑定 **MiniMax 或豆包** 其中一把 Key。两把都没有时**先停**，把下面的申请步骤告诉对方，让对方自己绑定。不要合成，不要索要 Key 原文
 - `coli`（本地语音识别）、`ffmpeg`、`node/npx`、`python3`
 - macOS：自动使用系统自带「手札体」；其他系统给 `--font 某中文手写字体.ttf`
 - 首次运行会在 `~/.cache/sketch-explainer-video/venv` 装 fonttools
@@ -18,18 +18,12 @@ description: 把一段中文口播文案做成「简笔画手写风」竖屏解�
 
 ## 绑定配音
 
-配音仍是 ListenHub，音色仍是晓曼这一套。每个使用者自己申请 Key，再在本机绑定。官方定价页写 10 分钟文字转语音大约 40 积分；积分换成人民币的价格该页没有给出。和其他语音的单价对照见 `references/tts.md`。
+线上只引导绑定这两家，两家都没绑就停下来，把步骤交给对方自己做：
 
-还没绑定时，请对方自己做这两步：
+1. **MiniMax**（默认。两家都绑了时用这一家）：打开 https://platform.minimax.cn ，进入「账户管理 → 接口密钥」创建 API Key。国际站用 https://platform.minimax.io ，并设置 `MINIMAX_API_HOST=https://api.minimax.io`。然后执行 `bash <skill>/scripts/bind_tts.sh minimax`。
+2. **豆包语音**：打开 https://console.volcengine.com/speech/new ，创建 API Key，并开通「豆包语音合成模型2.0」。然后执行 `bash <skill>/scripts/bind_tts.sh doubao`。
 
-1. 打开 https://listenhub.ai/settings/api-keys ，创建 API Key。
-2. 在自己电脑执行（输入不显示，Key 只留在本机，不要贴进对话）：
-
-```bash
-bash <skill>/scripts/bind_tts.sh
-```
-
-绑好后再建工程。已有 mp3 时用 `--audio`，不要重新合成。
+输入时不显示，Key 只留在本机，不要贴进对话。价格和音色见 `references/tts.md`。绑好后再建工程。已有 mp3 时用 `--audio`，不要重新合成。指定一家用 `--provider minimax` 或 `--provider doubao`。
 
 ## 流程
 
@@ -42,7 +36,7 @@ bash <skill>/scripts/bind_tts.sh
 - 结束时看输出里的 `matched x/y`：≥95% 正常（没对上的多是同音字，不影响）；明显偏低说明配音和文案不是同一份。
 - 产物：`sentences.txt`（每句开始秒数）、`assets/timing.js`、`index.html`（引擎已就位，留有 `<!--SCENES-->`）。
 
-音色（`--speaker`）：晓曼 `chat-girl-105-cn`（女，专业亲切，默认）· 高晴 `gaoqing3-bfb5c88a`（女，明亮有活力）· 苏哲 `suzhe-45bbbe54`（男，沉稳讲解）。更多音色以 ListenHub 控制台为准。
+音色（`--speaker`）：MiniMax 默认温柔学姐 `Chinese (Mandarin)_Gentle_Senior`，也可换 `Chinese (Mandarin)_News_Anchor`、`Chinese (Mandarin)_Gentleman`。豆包默认小何 2.0 `zh_female_xiaohe_uranus_bigtts`，也可换 Vivi 2.0 `zh_female_vv_uranus_bigtts`、云舟 2.0 `zh_male_m191_uranus_bigtts`。不要传 ListenHub 的音色 ID。
 
 ### 2. 切分镜（写 STORYBOARD.md）
 读 `sentences.txt`，把全片切成 **8–13 个画面**，每个 6–16 秒：
